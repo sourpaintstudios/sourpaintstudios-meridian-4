@@ -11,6 +11,7 @@ export type Place = {
 
 const Input = z.object({
   q: z.string().trim().min(2).max(240),
+  skipUs: z.boolean().optional(),
 });
 
 /** Commas optional, case does not matter. "Delmar, Iowa" and "delmar iowa" are the same query. */
@@ -167,7 +168,7 @@ async function nominatimPostal(code: string): Promise<Place[]> {
   url.searchParams.set("postalcode", code);
   url.searchParams.set("format", "json");
   url.searchParams.set("limit", "6");
-  const json = await timedJson<NominatimHit[]>(url.toString(), { headers: NOMINATIM_HEADERS }, 7000);
+  const json = await timedJson<NominatimHit[]>(url.toString(), { headers: NOMINATIM_HEADERS }, 5000);
   return (json ?? []).map(fromNominatim).filter((p): p is Place => Boolean(p));
 }
 
@@ -177,7 +178,7 @@ async function nominatimQuery(q: string, settlement: boolean): Promise<Place[]> 
   url.searchParams.set("format", "json");
   url.searchParams.set("limit", "6");
   if (settlement) url.searchParams.set("featuretype", "settlement");
-  const json = await timedJson<NominatimHit[]>(url.toString(), { headers: NOMINATIM_HEADERS }, 7000);
+  const json = await timedJson<NominatimHit[]>(url.toString(), { headers: NOMINATIM_HEADERS }, 5000);
   return (json ?? []).map(fromNominatim).filter((p): p is Place => Boolean(p));
 }
 
@@ -187,7 +188,7 @@ async function openMeteo(q: string): Promise<Place[]> {
   url.searchParams.set("count", "8");
   url.searchParams.set("language", "en");
   url.searchParams.set("format", "json");
-  const json = await timedJson<{ results?: OpenMeteoHit[] }>(url.toString(), undefined, 6000);
+  const json = await timedJson<{ results?: OpenMeteoHit[] }>(url.toString(), undefined, 5000);
   return (json?.results ?? []).map((hit) => ({
     id: `m-${hit.id}`,
     name: hit.name,
@@ -199,11 +200,36 @@ async function openMeteo(q: string): Promise<Place[]> {
 
 async function openMeteoCities(q: string): Promise<Place[]> {
   const parts = q.split(" ");
-  const queries = [q];
-  if (parts.length >= 2) queries.push(parts.slice(0, -1).join(" "));
-  if (parts.length >= 3) queries.push(parts[0]);
-  const batches = await Promise.all(queries.map((name) => openMeteo(name)));
-  return batches.flat();
+  // Full query first. Only fall back to a truncated query (drop the last
+  // word) when the full one comes up empty — most searches resolve on the
+  // first try, so this avoids firing a second and third request every time.
+  const first = await openMeteo(q);
+  if (first.length || parts.length < 2) return first;
+  return openMeteo(parts.slice(0, -1).join(" "));
+}
+
+// Repeat searches (retyping the same city, hitting "Find" twice) shouldn't
+// re-hit the network — a place's coordinates don't change. Capped so it
+// can't grow unbounded over a long session.
+const PLACE_CACHE_LIMIT = 100;
+const placeCache = new Map<string, Place[]>();
+
+function cacheGet(key: string): Place[] | undefined {
+  const hit = placeCache.get(key);
+  if (hit) {
+    // refresh recency
+    placeCache.delete(key);
+    placeCache.set(key, hit);
+  }
+  return hit;
+}
+
+function cacheSet(key: string, value: Place[]) {
+  placeCache.set(key, value);
+  if (placeCache.size > PLACE_CACHE_LIMIT) {
+    const oldest = placeCache.keys().next().value;
+    if (oldest !== undefined) placeCache.delete(oldest);
+  }
 }
 
 export const searchPlaces = createServerFn({ method: "POST" })
@@ -212,9 +238,20 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const q = normalizePlaceQuery(data.q);
     const postal = parsePostal(q);
     if (postal) {
-      const us = /^\d{5}$/.test(postal) ? lookupZip(postal) : Promise.resolve([] as Place[]);
-      const [zp, byCode, byQuery] = await Promise.all([us, nominatimPostal(postal), nominatimQuery(postal, false)]);
-      return rankPlaces([...zp, ...byCode, ...byQuery], q).slice(0, 8);
+      // The client already tried lookupZip for a US 5-digit zip before
+      // calling here (see findPlaces below); skipUs avoids repeating that
+      // same request a second time when it already came up empty.
+      const shouldTryUs = /^\d{5}$/.test(postal) && !data.skipUs;
+      const us = shouldTryUs ? lookupZip(postal) : Promise.resolve([] as Place[]);
+      // Try the postal-specific search first; only fan out to the looser
+      // free-text query if that comes back empty, instead of always paying
+      // for both in parallel.
+      const [zp, byCode] = await Promise.all([us, nominatimPostal(postal)]);
+      let hits = [...zp, ...byCode];
+      if (!hits.length) {
+        hits = await nominatimQuery(postal, false);
+      }
+      return rankPlaces(hits, q).slice(0, 8);
     }
     const [cities, named] = await Promise.all([openMeteoCities(q), nominatimQuery(q, true)]);
     let hits = rankPlaces([...named, ...cities], q);
@@ -227,10 +264,21 @@ export const searchPlaces = createServerFn({ method: "POST" })
 
 export async function findPlaces(q: string): Promise<Place[]> {
   const query = normalizePlaceQuery(q);
+  const cacheKey = query.toLowerCase();
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
   const us = parseUsZip(query);
+  let triedUs = false;
   if (us) {
     const local = await lookupZip(us);
-    if (local.length) return local;
+    triedUs = true;
+    if (local.length) {
+      cacheSet(cacheKey, local);
+      return local;
+    }
   }
-  return searchPlaces({ data: { q: query } });
+  const result = await searchPlaces({ data: { q: query, skipUs: triedUs } });
+  cacheSet(cacheKey, result);
+  return result;
 }
