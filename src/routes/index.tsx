@@ -128,7 +128,7 @@ function Home() {
           }
         >
           {firstPerson ? <HorizonPlaque place={place} firstPerson menus={!scientific} /> : null}
-          <AudioBed place={place} />
+          <AudioBed place={place} date={date} />
         </div>
       ) : null}
 
