@@ -185,3 +185,14 @@ html, body, #root { overscroll-behavior: none; }
 .loader-meter-bar { display: block; height: 3px; background: #c6ff1a; box-shadow: 0 0 12px #c6ff1a; transition: width 80ms linear; }
 .loader-meter-pct { width: 2.6rem; font-family: ui-monospace, monospace; font-size: 0.78rem; color: #c6ff1a; text-align: right; }
 
+
+/* Floating Sour Paint Studios mark: drifts in space, glows, no box. */
+.space-logo { animation: logo-drift 9s ease-in-out infinite; filter: drop-shadow(0 0 8px rgb(198 255 26 / 0.55)) drop-shadow(0 0 26px rgb(198 255 26 / 0.32)); }
+.space-logo-mark { display: block; user-select: none; -webkit-user-drag: none; }
+.space-logo-url { font-family: var(--font-sans, "IBM Plex Sans", system-ui, sans-serif); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.04em; line-height: 1; color: #d8ff4a; text-shadow: 0 0 6px rgb(198 255 26 / 0.9), 0 0 16px rgb(198 255 26 / 0.55); white-space: nowrap; }
+@media (min-width: 640px) { .space-logo-url { font-size: 1.05rem; } }
+@keyframes logo-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+  50% { transform: translate3d(2px, 5px, 0) rotate(1deg); }
+}
+@media (prefers-reduced-motion: reduce) { .space-logo { animation: none; } }

@@ -20,7 +20,7 @@ export function MusicCredits() {
         <span className="hidden text-[11px] font-medium tracking-wide sm:inline">Credits</span>
       </button>
       {open ? (
-        <div className="paint-panel pointer-events-auto w-[min(18rem,calc(100vw-1.5rem))] p-2.5 text-xs leading-snug text-muted">
+        <div className="paint-panel pointer-events-auto absolute! top-0 right-12 w-[min(18rem,calc(100vw-4.5rem))] p-2.5 text-xs leading-snug text-muted">
           <p className="mb-1 text-[10px] font-medium tracking-[0.14em] text-fg uppercase">Music</p>
           <p>
             “{MACLEOD_TITLES.join("”, “")}” by Kevin MacLeod (

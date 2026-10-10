@@ -3,6 +3,7 @@ import { ArrowLeft, Menu, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AudioBed } from "@/components/AudioBed";
 import { ControlDock } from "@/components/ControlDock";
+import { FloatingLogo } from "@/components/FloatingLogo";
 import { GlobeScene } from "@/components/GlobeScene";
 import { HorizonPlaque } from "@/components/HorizonPlaque";
 import { LoaderSplash, introAlready, markIntroDone } from "@/components/LoaderSplash";
@@ -103,34 +104,18 @@ function Home() {
             <Menu className="size-4" />
             <span className="text-[11px] font-medium tracking-wide">Menu</span>
           </button>
-        ) : (
-          <a
-            href="https://sourpaintstudios.com"
-            target="_blank"
-            rel="noreferrer"
-            className="paint-chip pointer-events-auto block size-10 shrink-0"
-            aria-label="Sour Paint Studios Meridian 4.0"
-            title="Sour Paint Studios Meridian 4.0"
-          >
-            <img src="/sour-paint-logo.png" alt="Sour Paint Studios" className="size-full object-cover" />
-          </a>
-        )}
+        ) : null}
       </div>
 
-      {loadGone ? (
-        <div
-          className={
-            firstPerson
-              ? "music-slot music-slot-fp"
-              : scientific
-                ? "music-slot music-slot-globe music-slot-globe-sci"
-                : "music-slot music-slot-globe"
-          }
-        >
-          {firstPerson ? <HorizonPlaque place={place} firstPerson menus={!scientific} /> : null}
-          <AudioBed place={place} date={date} />
+      {loadGone && !firstPerson && !scientific ? <FloatingLogo /> : null}
+
+      {loadGone && firstPerson ? (
+        <div className="music-slot music-slot-fp">
+          <HorizonPlaque place={place} firstPerson menus={!scientific} />
         </div>
       ) : null}
+
+      {loadGone ? <AudioBed place={place} date={date} compact={scientific} /> : null}
 
       {loadGone ? <MusicCredits /> : null}
 
