@@ -136,7 +136,7 @@ function Home() {
 
       {hover && hover.name !== identify?.name ? (
         <div
-          className="paint-chip pointer-events-none absolute z-20 px-1.5 py-0.5 font-mono text-[10px] leading-none text-fg"
+          className="paint-chip pointer-events-none absolute! z-20 w-max px-1.5 py-0.5 font-mono text-[10px] leading-none text-fg"
           style={{ left: hover.x + 8, top: hover.y - 6 }}
         >
           {hover.name}
@@ -144,7 +144,7 @@ function Home() {
       ) : null}
 
       {identify ? (
-        <div className="paint-panel absolute top-28 left-1/2 z-20 sm:top-20 w-[min(18rem,calc(100%-1.5rem))] -translate-x-1/2 p-2.5" role="status">
+        <div className="paint-panel absolute! top-28 left-1/2 z-20 sm:top-20 w-[min(18rem,calc(100%-1.5rem))] -translate-x-1/2 p-2.5" role="status">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[10px] font-medium tracking-[0.14em] text-muted uppercase">That's</p>
