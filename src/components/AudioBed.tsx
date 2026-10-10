@@ -31,16 +31,17 @@ export function AudioBed({ place, date }: { place: Place | null; date: Date }) {
   const autoRef = useRef(auto);
   autoRef.current = auto;
 
-  function advance(forceAuto?: boolean) {
+  function advance(forceAuto?: boolean, first = false) {
     const useAuto = forceAuto ?? autoRef.current;
-    const t = pickTrack(useAuto ? slotRef.current : null, recent.current);
+    const t = pickTrack(useAuto ? slotRef.current : null, recent.current, first);
     recent.current = [...recent.current, t.id].slice(-6);
     setTrack(t);
     setKick((k) => k + 1);
   }
 
   useEffect(() => {
-    advance();
+    // Open with the famous classical pieces; the rest of the library follows.
+    advance(undefined, true);
   }, []);
 
   useEffect(() => {

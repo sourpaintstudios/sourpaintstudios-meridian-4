@@ -54,9 +54,10 @@ export function slotFor(hour: number): Slot {
 }
 
 /** Next track for a slot (or any slot when null), never repeating the recent ones if avoidable. */
-export function pickTrack(slot: Slot | null, recent: string[]): Track {
-  const pool = slot ? CLASSICAL.filter((t) => t.slots.includes(slot)) : CLASSICAL;
-  const base = pool.length ? pool : CLASSICAL;
+export function pickTrack(slot: Slot | null, recent: string[], composersOnly = false): Track {
+  const all = composersOnly ? CLASSICAL.filter((t) => t.composer !== "MacLeod") : CLASSICAL;
+  const pool = slot ? all.filter((t) => t.slots.includes(slot)) : all;
+  const base = pool.length ? pool : all.length ? all : CLASSICAL;
   const keep = Math.min(recent.length, Math.max(0, base.length - 1));
   const avoid = new Set(recent.slice(-keep));
   const fresh = base.filter((t) => !avoid.has(t.id));
