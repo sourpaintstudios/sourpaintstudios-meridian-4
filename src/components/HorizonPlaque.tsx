@@ -28,7 +28,7 @@ export function HorizonPlaque({
   return (
     <div className="horizon-plaque">
       <p className="horizon-city">{place.name}</p>
-      {extra ? <p className="horizon-extra">{extra}</p> : null}
+      {extra && extra.toLowerCase() !== place.name.toLowerCase() ? <p className="horizon-extra">{extra}</p> : null}
       <p className="horizon-brand">Sour Paint Studios</p>
     </div>
   );

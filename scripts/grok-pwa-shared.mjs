@@ -209,7 +209,9 @@ export function readGrokProjectId() {
 
 export function readGrokExtensionsEnabled() {
   const fromProcess = typeof process !== "undefined" ? process.env?.VITE_GROK_EXTENSIONS : "";
-  return String(fromProcess ?? "").trim() !== "0";
+  // Off by default: this app is hosted on sourpaintstudios.com, so the Grok "Created with" badge is not injected.
+  // Set VITE_GROK_EXTENSIONS=1 to turn it back on.
+  return String(fromProcess ?? "").trim() === "1";
 }
 
 export function readXCreator() {

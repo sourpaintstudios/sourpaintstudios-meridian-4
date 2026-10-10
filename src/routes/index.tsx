@@ -6,6 +6,7 @@ import { ControlDock } from "@/components/ControlDock";
 import { GlobeScene } from "@/components/GlobeScene";
 import { HorizonPlaque } from "@/components/HorizonPlaque";
 import { LoaderSplash, introAlready, markIntroDone } from "@/components/LoaderSplash";
+import { MusicCredits } from "@/components/MusicCredits";
 import type { SkyHover, SkyIdentify } from "@/components/SkyLayer";
 import { moonIllumination, sublunarPoint, subsolarPoint } from "@/lib/astro";
 import type { Place } from "@/lib/geocode";
@@ -131,6 +132,8 @@ function Home() {
         </div>
       ) : null}
 
+      {loadGone ? <MusicCredits /> : null}
+
       {hover && hover.name !== identify?.name ? (
         <div
           className="paint-chip pointer-events-none absolute z-20 px-1.5 py-0.5 font-mono text-[10px] leading-none text-fg"
@@ -141,7 +144,7 @@ function Home() {
       ) : null}
 
       {identify ? (
-        <div className="paint-panel absolute top-20 left-1/2 z-20 w-[min(18rem,calc(100%-1.5rem))] -translate-x-1/2 p-2.5" role="status">
+        <div className="paint-panel absolute top-28 left-1/2 z-20 sm:top-20 w-[min(18rem,calc(100%-1.5rem))] -translate-x-1/2 p-2.5" role="status">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[10px] font-medium tracking-[0.14em] text-muted uppercase">That's</p>
@@ -159,7 +162,7 @@ function Home() {
         <div
           className={
             firstPerson
-              ? "pointer-events-none absolute bottom-[4.6rem] left-4 z-10 flex justify-start p-0"
+              ? "pointer-events-none absolute bottom-[5.9rem] left-4 z-10 flex justify-start p-0"
               : "pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:inset-auto sm:bottom-4 sm:left-4 sm:justify-start"
           }
         >

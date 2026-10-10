@@ -130,7 +130,7 @@ async function timedJson<T>(url: string, init: RequestInit | undefined, ms: numb
 
 const NOMINATIM_HEADERS = {
   Accept: "application/json",
-  "User-Agent": "MeridianGlobe/1.0 (https://grok.me; globe visualization)",
+  "User-Agent": "SourPaintMeridian/4.0 (https://sourpaintstudios.com; sky and globe viewer)",
 };
 
 function fromNominatim(hit: NominatimHit): Place | null {
