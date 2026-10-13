@@ -11,6 +11,7 @@ const MUTE_KEY = "meridian-mute-v2";
  * Music follows the sun: tracks are chosen by the time of day at the pinned place
  * (or on the viewer's clock with no pin). "ALL" ignores the clock and shuffles everything.
  * A change of time of day takes effect when the current track ends.
+ * The Next button always draws from the whole library, not just the current time of day.
  */
 const SLOT_ICON: Record<Slot, typeof Sun> = { dawn: Sunrise, day: Sun, dusk: Sunset, night: Moon };
 
@@ -88,7 +89,7 @@ export function AudioBed({ place, date, compact = false }: { place: Place | null
       >
         {muted ? <VolumeX /> : <Volume2 />}
       </Button>
-      <Button type="button" size="icon" variant="outline" className={btn} aria-label="Next track" title="Next track" onClick={() => advance()}>
+      <Button type="button" size="icon" variant="outline" className={btn} aria-label="Next track" title="Next track" onClick={() => advance(false)}>
         <SkipForward />
       </Button>
       {compact ? null : (
