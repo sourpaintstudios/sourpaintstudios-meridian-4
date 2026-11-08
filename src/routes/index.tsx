@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Menu, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AudioBed } from "@/components/AudioBed";
 import { ControlDock } from "@/components/ControlDock";
 import { FloatingLogo } from "@/components/FloatingLogo";
@@ -8,6 +8,9 @@ import { GlobeScene } from "@/components/GlobeScene";
 import { HorizonPlaque } from "@/components/HorizonPlaque";
 import { LoaderSplash, introAlready, markIntroDone } from "@/components/LoaderSplash";
 import { MusicCredits } from "@/components/MusicCredits";
+import { HelpDialog } from "@/components/HelpDialog";
+import { initQc } from "@/lib/qc";
+import { readResume, saveResume } from "@/lib/help";
 import type { SkyHover, SkyIdentify } from "@/components/SkyLayer";
 import { moonIllumination, sublunarPoint, subsolarPoint } from "@/lib/astro";
 import type { Place } from "@/lib/geocode";
@@ -25,7 +28,52 @@ function Home() {
   const [hover, setHover] = useState<SkyHover | null>(null);
   const [identify, setIdentify] = useState<SkyIdentify | null>(null);
   const [globeReady, setGlobeReady] = useState(false);
-  const [loadGone, setLoadGone] = useState(() => introAlready());
+  const [loadGone, setLoadGone] = useState(false);
+  const [help, setHelp] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const customDate = useRef(false);
+
+  const onDate = useCallback((d: Date) => {
+    customDate.current = Math.abs(d.getTime() - Date.now()) > 90_000;
+    setDate(d);
+  }, []);
+
+  // Offline quality control + put back the pin, date, view and toggles after a reload.
+  useEffect(() => {
+    initQc();
+    const r = readResume();
+    if (r) {
+      if (r.place) setPlace(r.place);
+      if (r.dateMs != null) {
+        customDate.current = true;
+        setDate(new Date(r.dateMs));
+      }
+      setShowConstellations(r.constellations);
+      setShowPlanets(r.planets);
+      if (r.firstPerson) {
+        setFirstPerson(true);
+        setScientific(r.scientific);
+      } else {
+        setScientific(r.scientific);
+      }
+    }
+    // With no signal the intro film and walking sound cannot load, so go straight in.
+    if (navigator.onLine === false) markIntroDone();
+    if (introAlready()) setLoadGone(true);
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored) return;
+    saveResume({
+      place,
+      dateMs: customDate.current ? date.getTime() : null,
+      firstPerson,
+      constellations: showConstellations,
+      planets: showPlanets,
+      scientific,
+    });
+  }, [restored, place, date, firstPerson, showConstellations, showPlanets, scientific]);
 
   const goFirstPerson = useCallback((v: boolean) => {
     setFirstPerson(v);
@@ -154,7 +202,7 @@ function Home() {
           <div className="flex w-[11.75rem] max-w-[11.75rem] flex-col items-stretch gap-1.5">
             <ControlDock
               date={date}
-              onDate={setDate}
+              onDate={onDate}
               place={place}
               onPlace={setPlace}
               firstPerson={firstPerson}
@@ -164,12 +212,15 @@ function Home() {
               showPlanets={showPlanets}
               onPlanets={setShowPlanets}
               onScientific={() => setScientific(true)}
+              onHelp={() => setHelp(true)}
             />
           </div>
         </div>
       )}
 
-      {loadGone ? null : <LoaderSplash ready={globeReady} onDone={dismissLoad} />}
+      {help ? <HelpDialog onClose={() => setHelp(false)} /> : null}
+
+      {loadGone || !restored ? null : <LoaderSplash ready={globeReady} onDone={dismissLoad} />}
     </main>
   );
 }

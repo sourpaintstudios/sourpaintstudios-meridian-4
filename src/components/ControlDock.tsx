@@ -24,6 +24,7 @@ export function ControlDock({
   showPlanets,
   onPlanets,
   onScientific,
+  onHelp,
 }: {
   date: Date;
   onDate: (d: Date) => void;
@@ -36,6 +37,7 @@ export function ControlDock({
   showPlanets: boolean;
   onPlanets: (v: boolean) => void;
   onScientific: () => void;
+  onHelp: () => void;
 }) {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Place[]>([]);
@@ -212,6 +214,10 @@ export function ControlDock({
       <Button type="button" size="sm" className="h-6 w-full px-1 text-[10px] [&_svg]:size-3" variant="outline" onClick={onScientific}>
         <Eraser className="size-3" />
         Scientific
+      </Button>
+
+      <Button type="button" size="sm" className="h-6 w-full px-1 text-[10px]" variant="outline" onClick={onHelp}>
+        How to · About
       </Button>
 
       {place && sky ? (

@@ -1167,7 +1167,7 @@ export function GlobeScene(props: GlobeSceneProps) {
         </Canvas>
       </CanvasGuard>
       {props.scientific ? null : (
-      <div className="pointer-events-none absolute top-1/2 right-2 z-10 flex -translate-y-1/2 flex-col gap-1.5">
+      <div className="mer-zoomcol pointer-events-none absolute top-1/2 right-2 z-10 flex -translate-y-1/2 flex-col gap-1.5">
         <Button
           type="button"
           size="icon"

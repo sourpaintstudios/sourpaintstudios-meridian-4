@@ -28,6 +28,8 @@ export function AudioBed({ place, date, compact = false }: { place: Place | null
   const [auto, setAuto] = useState(true);
   const [track, setTrack] = useState<Track | null>(null);
   const [kick, setKick] = useState(0);
+  const errs = useRef(0);
+  const [needSignal, setNeedSignal] = useState(false);
 
   const slot = slotFor(localHour(date, place ? place.lng : null));
   const slotRef = useRef(slot);
@@ -46,6 +48,18 @@ export function AudioBed({ place, date, compact = false }: { place: Place | null
   useEffect(() => {
     // Open with the famous classical pieces; the rest of the library follows.
     advance(undefined, true);
+  }, []);
+
+  // Music files need a signal. After three failures in a row stop skipping and wait for the signal to return.
+  useEffect(() => {
+    const back = () => {
+      if (errs.current < 3) return;
+      errs.current = 0;
+      setNeedSignal(false);
+      advance();
+    };
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
   }, []);
 
   useEffect(() => {
@@ -77,7 +91,17 @@ export function AudioBed({ place, date, compact = false }: { place: Place | null
 
   return (
     <div className="pointer-events-none absolute top-[4.25rem] right-2 z-40 flex flex-col items-end gap-1.5">
-      {track ? <audio ref={audio} src={track.src} preload="auto" onEnded={() => advance()} onError={() => advance()} /> : null}
+      {track ? <audio ref={audio} src={track.src} preload="auto" onEnded={() => advance()}
+          onPlaying={() => {
+            errs.current = 0;
+            setNeedSignal(false);
+          }}
+          onError={() => {
+            errs.current += 1;
+            if (errs.current >= 3) setNeedSignal(true);
+            else advance();
+          }}
+        /> : null}
       <Button
         type="button"
         size="icon"
@@ -114,7 +138,7 @@ export function AudioBed({ place, date, compact = false }: { place: Place | null
             <span className="block truncate text-[8px] font-semibold tracking-[0.14em] text-brand uppercase">
               {auto ? SLOT_LABEL[slot] : "SHUFFLE"}
             </span>
-            <span className="block truncate text-[10px] leading-tight text-fg">{track?.title ?? ""}</span>
+            <span className="block truncate text-[10px] leading-tight text-fg">{needSignal ? "Music needs a signal" : (track?.title ?? "")}</span>
             <span className="block truncate text-[9px] leading-tight text-muted">{track?.composer ?? ""}</span>
           </div>
         </>
