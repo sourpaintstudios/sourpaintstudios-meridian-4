@@ -29,8 +29,8 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
               <ul>
                 <li>Drag the globe to turn it. Pinch or use the + and − buttons to zoom.</li>
                 <li><b>First Person</b> puts you on the pin looking at the real sky for that time. Drag to look around. <b>Earth</b> takes you back.</li>
-                <li>Tap a star or planet to see what it is.</li>
-                <li><b>Constellations</b> and <b>Planets</b> turn the labels on and off.</li>
+                <li>Tap a star, planet or constellation to see its name and a short note.</li>
+                <li><b>Constellations</b> and <b>Planets</b> turn the lines, labels and tap-to-name on and off.</li>
                 <li><b>Scientific</b> hides the menus for a clean view. Tap <b>Menu</b> to bring them back.</li>
               </ul>
               <h2>Music</h2>

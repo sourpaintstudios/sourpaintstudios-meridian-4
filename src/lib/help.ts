@@ -1,6 +1,6 @@
 import type { Place } from "@/lib/geocode";
 
-export const APP_VERSION = "v4.1 · November 2026";
+export const APP_VERSION = "v4.2 · November 2026";
 const KEY = "meridian.resume.v1";
 const MAX_MS = 4 * 60 * 60 * 1000;
 

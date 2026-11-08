@@ -19,9 +19,24 @@ export type SkyIdentify = { name: string; blurb: string };
 type PickItem = {
   name: string;
   position: THREE.Vector3;
-  kind: "planet" | "body" | "star";
+  kind: "planet" | "body" | "star" | "constellation";
   hit: number;
+  occlude?: boolean;
 };
+
+export function rayHitsEarth(cam: THREE.Vector3, target: THREE.Vector3) {
+  const dx = target.x - cam.x;
+  const dy = target.y - cam.y;
+  const dz = target.z - cam.z;
+  const len2 = dx * dx + dy * dy + dz * dz;
+  if (len2 < 1e-9) return false;
+  const t = -(cam.x * dx + cam.y * dy + cam.z * dz) / len2;
+  if (t <= 0 || t >= 1) return false;
+  const px = cam.x + dx * t;
+  const py = cam.y + dy * t;
+  const pz = cam.z + dz * t;
+  return px * px + py * py + pz * pz < EARTH_R * EARTH_R;
+}
 
 function localFrame(lat: number, lng: number) {
   const up = latLngToVector3(lat, lng, 1).normalize();
@@ -94,6 +109,7 @@ function SkyPick({
       for (const it of list.current) {
         scratch.copy(it.position).project(camera);
         if (scratch.z < -1.05 || scratch.z > 1.25) continue;
+        if (it.occlude && rayHitsEarth(camera.position, it.position)) continue;
         const x = (scratch.x * 0.5 + 0.5) * rect.width;
         const y = (-scratch.y * 0.5 + 0.5) * rect.height;
         const d = Math.hypot(cx - rect.left - x, cy - rect.top - y);
@@ -258,8 +274,42 @@ export function SkyLayer({
     return { pos: latLngToVector3(89.35, 0, EARTH_R + 0.82), up: true, r: 0.016 };
   }, [date, fp, lat, lng, starByName]);
 
+  const constCentroids = useMemo(() => {
+    const out: { name: string; pos: THREE.Vector3 }[] = [];
+    if (!showConstellations) return out;
+    for (const c of CONSTELLATIONS) {
+      const seen = new Set<string>();
+      const acc = new THREE.Vector3();
+      let n = 0;
+      for (const [a, b] of c.lines) {
+        for (const nm of [a, b]) {
+          if (seen.has(nm)) continue;
+          seen.add(nm);
+          const st = starByName.get(nm);
+          if (!st) continue;
+          if (fp) {
+            const sky = equatorialToAltAz(date, lat, lng, st.ra, st.dec);
+            if (sky.altitude < 4) continue;
+            acc.add(skyPoint(lat, lng, sky.azimuth, sky.altitude, STAR_DIST));
+          } else {
+            const g = equatorialToGeo(date, st.ra, st.dec);
+            acc.add(latLngToVector3(g.lat, g.lng, CELESTIAL_R));
+          }
+          n += 1;
+        }
+      }
+      if (n < 2) continue;
+      acc.multiplyScalar(1 / n);
+      out.push({ name: c.name, pos: acc });
+    }
+    return out;
+  }, [date, fp, lat, lng, showConstellations, starByName]);
+
   const pickItems = useMemo(() => {
     const items: PickItem[] = [];
+    for (const c of constCentroids) {
+      items.push({ name: c.name, position: c.pos, kind: "constellation", hit: fp ? 70 : 56, occlude: !fp });
+    }
     if (fp) {
       const sunSky = sunPosition(date, lat, lng);
       if (sunSky.altitude > -2) {
@@ -305,7 +355,7 @@ export function SkyLayer({
       items.push({ name: "North Star", position: polaris.pos, kind: "star", hit: fp ? 36 : 28 });
     }
     return items;
-  }, [date, fp, lat, lng, moon.lat, moon.lng, planets, polaris, showPlanets, stars, sun.lat, sun.lng]);
+  }, [constCentroids, date, fp, lat, lng, moon.lat, moon.lng, planets, polaris, showPlanets, stars, sun.lat, sun.lng]);
 
   return (
     <>
@@ -396,7 +446,7 @@ export function SkyLayer({
         polaris={polaris}
         showPlanets={showPlanets}
         planets={planets}
-        starByName={starByName}
+        centroids={constCentroids}
         sun={sun}
         moon={moon}
       />
@@ -413,7 +463,7 @@ function SkyTagger({
   polaris,
   showPlanets,
   planets,
-  starByName,
+  centroids,
   sun,
   moon,
 }: {
@@ -425,13 +475,12 @@ function SkyTagger({
   polaris: { pos: THREE.Vector3; up: boolean; r: number } | null;
   showPlanets: boolean;
   planets: PlanetState[];
-  starByName: Map<string, { n: string; ra: number; dec: number; mag: number; sp: string }>;
+  centroids: { name: string; pos: THREE.Vector3 }[];
   sun: GeoPoint;
   moon: GeoPoint;
 }) {
   const { camera, gl } = useThree();
   const scratch = useMemo(() => new THREE.Vector3(), []);
-  const mid = useMemo(() => new THREE.Vector3(), []);
   const earthTag = useMemo(() => new THREE.Vector3(), []);
   const moonTag = useMemo(() => new THREE.Vector3(), []);
   const sunTag = useMemo(() => new THREE.Vector3(), []);
@@ -476,6 +525,12 @@ function SkyTagger({
           project(planetTag, p.name, "planet");
         }
       }
+      if (showConstellations) {
+        for (const c of centroids) {
+          if (rayHitsEarth(camera.position, c.pos)) continue;
+          project(c.pos, c.name, "constellation");
+        }
+      }
       skyTagsApi.current = tags;
       return;
     }
@@ -501,31 +556,7 @@ function SkyTagger({
     }
 
     if (showConstellations && sunAlt < 2) {
-      for (const c of CONSTELLATIONS) {
-        let x = 0;
-        let y = 0;
-        let z = 0;
-        let n = 0;
-        const seen = new Set<string>();
-        for (const [a, b] of c.lines) {
-          for (const name of [a, b]) {
-            if (seen.has(name)) continue;
-            seen.add(name);
-            const s = starByName.get(name);
-            if (!s) continue;
-            const sky = equatorialToAltAz(date, lat, lng, s.ra, s.dec);
-            if (sky.altitude < 4) continue;
-            const p = skyPoint(lat, lng, sky.azimuth, sky.altitude, STAR_DIST);
-            x += p.x;
-            y += p.y;
-            z += p.z;
-            n += 1;
-          }
-        }
-        if (n < 2) continue;
-        mid.set(x / n, y / n, z / n);
-        project(mid, c.name, "constellation");
-      }
+      for (const c of centroids) project(c.pos, c.name, "constellation");
     }
 
     skyTagsApi.current = tags;

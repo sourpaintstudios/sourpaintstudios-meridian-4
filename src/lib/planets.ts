@@ -220,8 +220,31 @@ export const SKY_BLURB: Record<string, string> = {
   "North Star": "Polaris — the North Star. It sits almost still above Earth's north pole, which is why the sky turns around it.",
 };
 
+export const CONSTELLATION_BLURB: Record<string, string> = {
+  Orion: "The Hunter. Three stars in a row make his belt; red Betelgeuse and blue Rigel mark shoulder and foot.",
+  "Ursa Major": "The Great Bear. Its seven brightest stars form the Big Dipper, whose pointer stars aim at the North Star.",
+  "Ursa Minor": "The Little Bear. Contains the Little Dipper, with Polaris at the end of its handle.",
+  Cassiopeia: "The Queen. A bright zigzag shaped like a W or M, opposite the Big Dipper around the North Star.",
+  Cygnus: "The Swan, also called the Northern Cross. Deneb marks the tail, flying along the Milky Way.",
+  Scorpius: "The Scorpion. Red Antares is its heart, with a curved tail hooked at the end.",
+  Crux: "The Southern Cross. Smallest of the 88 constellations, and a guide to the south pole.",
+  Taurus: "The Bull. Orange Aldebaran is its eye, with the Pleiades star cluster on its shoulder.",
+  Gemini: "The Twins. Castor and Pollux are the two bright heads.",
+  Leo: "The Lion. A backward question mark of stars, the Sickle, forms the head and mane.",
+  "Canis Major": "The Great Dog. Holds Sirius, the brightest star in the night sky.",
+  "Canis Minor": "The Little Dog. Procyon is its bright star, close to us at about 11 light-years.",
+  Auriga: "The Charioteer. Bright yellow Capella leads a pentagon of stars.",
+  "Boötes": "The Herdsman. Orange Arcturus shines at the base of a kite shape.",
+  Pegasus: "The Winged Horse. Its Great Square is a signpost for autumn skies.",
+  Andromeda: "The Chained Princess. Points toward the Andromeda Galaxy, our nearest large neighbor.",
+  Lyra: "The Lyre. Small, but home to Vega, one of the brightest stars in the sky.",
+  Aquila: "The Eagle. Altair is its bright star, flying along the Milky Way.",
+  Virgo: "The Maiden. Spica is her bright star, and a cloud of galaxies lies within her.",
+  Sagittarius: "The Archer. Its teapot shape points at the center of our Milky Way galaxy.",
+};
+
 export function skyBlurb(name: string) {
-  return SKY_BLURB[name] ?? "A bright star in this sky.";
+  return CONSTELLATION_BLURB[name] ?? SKY_BLURB[name] ?? "A bright star in this sky.";
 }
 
 export const PLANET_SPACE: Record<PlanetName, { dist: number; size: number; skyDist: number; skySize: number }> = {
