@@ -50,19 +50,7 @@ export const CLASSICAL: Track[] = [
   { id: "handel-rejoice", composer: "Handel", title: "La Réjouissance", src: "/audio/handel-rejoice.mp3", mood: "bright", slots: ["dawn", "day"] },
   { id: "handel-bourree", composer: "Handel", title: "Bourrée, Royal Fireworks", src: "/audio/handel-bourree.mp3", mood: "bright", slots: ["day"] },
   { id: "joplin-maple", composer: "Joplin", title: "Maple Leaf Rag", src: "/audio/joplin-maple.mp3", mood: "bright", slots: ["day"] },
-  { id: "tchaik-triste", composer: "Tchaikovsky", title: "Chanson Triste", src: "/audio/ru-tchaik-triste.mp3", mood: "contemplative", slots: ["dusk", "night"] },
-  { id: "tchaik-humoresque", composer: "Tchaikovsky", title: "Humoresque", src: "/audio/ru-tchaik-humoresque.mp3", mood: "bright", slots: ["day"] },
   { id: "rimsky-sadko", composer: "Rimsky-Korsakov", title: "Song of India", src: "/audio/ru-rimsky-sadko.mp3", mood: "dreamy", slots: ["dusk", "night"] },
-  { id: "granados", composer: "Granados", title: "Spanish Dance", src: "/audio/es-granados.mp3", mood: "stately", slots: ["dusk"] },
-  { id: "paloma", composer: "Yradier", title: "La Paloma", src: "/audio/es-paloma.mp3", mood: "calm", slots: ["dusk", "night"] },
-  { id: "dvorak", composer: "Dvořák", title: "Songs My Mother Taught Me", src: "/audio/cz-dvorak.mp3", mood: "calm", slots: ["dawn", "dusk"] },
-  { id: "grieg", composer: "Grieg", title: "Solveig's Song", src: "/audio/no-grieg.mp3", mood: "contemplative", slots: ["dawn", "night"] },
-  { id: "irish", composer: "Traditional", title: "Irish Melodies", src: "/audio/ie-melodies.mp3", mood: "calm", slots: ["dawn", "dusk"] },
-  { id: "rosas", composer: "Rosas", title: "Over the Waves", src: "/audio/mx-waves.mp3", mood: "dreamy", slots: ["dusk", "night"] },
-  { id: "sole-mio", composer: "di Capua", title: "O Sole Mio", src: "/audio/it-sole.mp3", mood: "bright", slots: ["dawn", "day"] },
-  { id: "santa-lucia", composer: "Cottrau", title: "Santa Lucia", src: "/audio/it-lucia.mp3", mood: "calm", slots: ["dusk"] },
-  { id: "sakura", composer: "Traditional", title: "Sakura Sakura", src: "/audio/jp-sakura.mp3", mood: "calm", slots: ["dawn", "night"] },
-  { id: "tanko", composer: "Traditional", title: "Tankō Bushi", src: "/audio/jp-tanko.mp3", mood: "stately", slots: ["day", "dusk"] },
 ];
 
 export const SLOT_LABEL: Record<Slot, string> = {
